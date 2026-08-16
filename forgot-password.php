@@ -30,9 +30,11 @@ if(isset($_POST['resetPassword'])){
 
             /* Update password */
 
+            $newPassword = password_hash($newPassword, PASSWORD_DEFAULT);
+
             $update = "UPDATE users
-                       SET password='$newPassword'
-                       WHERE email='$email'";
+                SET password='$newPassword'
+                WHERE email='$email'";
 
             if(mysqli_query($conn, $update)){
 

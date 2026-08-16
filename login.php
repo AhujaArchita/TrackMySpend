@@ -8,24 +8,32 @@ if(isset($_POST['login'])){
     $email = $_POST['email'];
     $password = $_POST['password'];
 
-    $sql = "SELECT * FROM users
-            WHERE email='$email'
-            AND password='$password'";
+    $sql = "SELECT * FROM users WHERE email='$email'";
 
-    $result = mysqli_query($conn,$sql);
+$result = mysqli_query($conn,$sql);
 
-    if(mysqli_num_rows($result)>0){
+if(mysqli_num_rows($result) > 0){
 
-        $_SESSION['email']=$email;
+    $user = mysqli_fetch_assoc($result);
+
+    if(password_verify($password, $user['password'])){
+
+        $_SESSION['email'] = $user['email'];
 
         header("Location:index.php");
         exit();
 
     }else{
 
-        $error="Invalid Email or Password";
+        $error = "Invalid Email or Password";
 
     }
+
+}else{
+
+    $error = "Invalid Email or Password";
+
+}
 
 }
 

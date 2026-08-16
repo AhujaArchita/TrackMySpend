@@ -21,6 +21,90 @@ $userQuery = "SELECT * FROM users WHERE email='$email'";
 $userResult = mysqli_query($conn, $userQuery);
 
 $user = mysqli_fetch_assoc($userResult);
+$user_id = $user['id'];
+/* Save Settings */
+
+if(isset($_POST['saveSettings'])){
+
+    $full_name = trim($_POST['full_name']);
+    $phone = trim($_POST['phone']);
+    $balance = trim($_POST['balance']);
+
+    $current_password = $_POST['current_password'];
+    $new_password = $_POST['new_password'];
+    $confirm_password = $_POST['confirm_password'];
+
+    /* Update Name, Phone and Starting Balance */
+
+    $updateQuery = "UPDATE users 
+                    SET full_name='$full_name',
+                        phone='$phone',
+                        balance='$balance'
+                    WHERE id='$user_id'";
+
+    if(!mysqli_query($conn, $updateQuery)){
+
+        echo "Settings not updated: " . mysqli_error($conn);
+        exit();
+
+    }
+
+
+    /* Password Change */
+
+    if(!empty($current_password) || !empty($new_password) || !empty($confirm_password)){
+
+        if(empty($current_password) || empty($new_password) || empty($confirm_password)){
+
+            echo "<script>alert('Please fill all password fields.');</script>";
+
+        }elseif($new_password != $confirm_password){
+
+            echo "<script>alert('New password and confirm password do not match.');</script>";
+
+        }else{
+
+            /* Check current password */
+
+            if(password_verify($current_password, $user['password'])){
+
+                $newPassword = password_hash($new_password, PASSWORD_DEFAULT);
+
+                $passwordQuery = "UPDATE users
+                                  SET password='$newPassword'
+                                  WHERE id='$user_id'";
+
+                if(mysqli_query($conn, $passwordQuery)){
+
+                    echo "<script>alert('Password changed successfully.');</script>";
+
+                }else{
+
+                    echo "Password not updated: " . mysqli_error($conn);
+                    exit();
+
+                }
+
+            }else{
+
+                echo "<script>alert('Current password is incorrect.');</script>";
+
+            }
+
+        }
+
+    }
+
+
+    /* Refresh user data */
+
+    $userQuery = "SELECT * FROM users WHERE id='$user_id'";
+    $userResult = mysqli_query($conn, $userQuery);
+    $user = mysqli_fetch_assoc($userResult);
+
+    echo "<script>alert('Settings saved successfully.');</script>";
+
+}
 
 
 /* Save Expense */
@@ -243,7 +327,9 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
 
 <div class="setting-card">
 
-<h3><i class="fa fa-id-card"></i> Personal Information</h3>
+<h3>
+    <i class="fa fa-id-card"></i> Personal Information
+</h3>
 
 <div class="setting-grid">
 
@@ -251,38 +337,82 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
 
 <label>Full Name</label>
 
-<input type="text"
-       name="full_name"
-       value="<?php echo $user['full_name']; ?>">
+<input 
+    type="text" 
+    name="full_name"
+    value="<?php echo htmlspecialchars($user['full_name']); ?>"
+    form="settingsForm"
+>
+
 </div>
 
 <div>
 
 <label>Email</label>
 
-<input type="email"
-       name="email"
-       value="<?php echo $user['email']; ?>">
+<input 
+    type="email"
+    value="<?php echo htmlspecialchars($user['email']); ?>"
+    readonly
+>
+
 </div>
 
 <div>
 
 <label>Phone</label>
 
-<input type="text"
-       name="phone"
-       value="<?php echo $user['phone']; ?>">
+<input 
+    type="text"
+    name="phone"
+    value="<?php echo htmlspecialchars($user['phone']); ?>"
+    form="settingsForm"
+>
+
 </div>
 
 <div>
 
 <label>Country</label>
 
-<input type="text" value="India">
+<input 
+    type="text"
+    value="India"
+    readonly
+>
 
 </div>
 
 </div>
+
+</div>
+<!-- Balance Information -->
+
+<div class="setting-card">
+
+    <h3>
+        <i class="fa fa-wallet"></i> Balance Information
+    </h3>
+
+    <div class="setting-grid">
+
+        <div>
+
+            <label>Starting Balance</label>
+
+            <input 
+                type="number"
+                name="balance"
+                value="<?php echo htmlspecialchars($user['balance'] ?? ''); ?>"
+                placeholder="Enter Starting Balance"
+                min="0"
+                step="0.01"
+                form="settingsForm"
+            >
+
+        </div>
+
+    </div>
 
 </div>
 
@@ -290,7 +420,9 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
 
 <div class="setting-card">
 
-<h3><i class="fa fa-lock"></i> Change Password</h3>
+<h3>
+    <i class="fa fa-lock"></i> Change Password
+</h3>
 
 <div class="setting-grid">
 
@@ -298,7 +430,12 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
 
 <label>Current Password</label>
 
-<input type="password">
+<input 
+    type="password"
+    name="current_password"
+    placeholder="Enter current password"
+    form="settingsForm"
+>
 
 </div>
 
@@ -306,7 +443,12 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
 
 <label>New Password</label>
 
-<input type="password">
+<input 
+    type="password"
+    name="new_password"
+    placeholder="Enter new password"
+    form="settingsForm"
+>
 
 </div>
 
@@ -314,14 +456,18 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
 
 <label>Confirm Password</label>
 
-<input type="password">
+<input 
+    type="password"
+    name="confirm_password"
+    placeholder="Confirm new password"
+    form="settingsForm"
+>
 
 </div>
 
 </div>
 
 </div>
-
 <!-- Preferences -->
 
 <div class="setting-card">
@@ -352,12 +498,18 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
 
 </div>
 
-<button class="save-btn">
+<form method="POST" id="settingsForm">
 
-<i class="fa fa-floppy-disk"></i>
+</form>
 
-Save Changes
-
+<button 
+    type="submit"
+    name="saveSettings"
+    class="save-btn"
+    form="settingsForm"
+>
+    <i class="fa fa-floppy-disk"></i>
+    Save Changes
 </button>
 
 </div>

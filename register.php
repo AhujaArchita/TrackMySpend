@@ -15,6 +15,7 @@ if(isset($_POST['register'])){
         $message = "Passwords do not match!";
 
     }else{
+        $password = password_hash($password, PASSWORD_DEFAULT);
 
         $sql = "INSERT INTO users(full_name,email,phone,password)
                 VALUES('$name','$email','$phone','$password')";

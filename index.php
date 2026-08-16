@@ -22,7 +22,57 @@ $userResult = mysqli_query($conn, $userQuery);
 
 $user = mysqli_fetch_assoc($userResult);
 $user_id = $user['id'];
+$startingBalance = $user['balance'];
+/* Recent Transactions */
 
+$recentQuery = "
+    SELECT 
+        expenses.expense_date,
+        categories.category_name,
+        expenses.amount
+    FROM expenses
+    LEFT JOIN categories
+        ON expenses.category_id = categories.category_id
+    WHERE expenses.user_id='$user_id'
+    ORDER BY expenses.expense_date DESC
+    LIMIT 5
+";
+
+$recentResult = mysqli_query($conn, $recentQuery);
+/* Dashboard Expense Summary */
+
+$totalQuery = "
+    SELECT SUM(amount) AS total_expense
+    FROM expenses
+    WHERE user_id='$user_id'
+";
+
+$totalResult = mysqli_query($conn, $totalQuery);
+$totalRow = mysqli_fetch_assoc($totalResult);
+
+$totalExpense = $totalRow['total_expense'] ?? 0;
+
+
+/* Current Month Expense */
+
+$monthlyExpenseQuery = "
+    SELECT SUM(amount) AS monthly_expense
+    FROM expenses
+    WHERE user_id='$user_id'
+    AND MONTH(expense_date) = MONTH(CURDATE())
+    AND YEAR(expense_date) = YEAR(CURDATE())
+";
+
+$monthlyExpenseResult = mysqli_query($conn, $monthlyExpenseQuery);
+$monthlyExpenseRow = mysqli_fetch_assoc($monthlyExpenseResult);
+
+$monthlyExpense = $monthlyExpenseRow['monthly_expense'] ?? 0;
+
+/* Current Balance */
+
+/* Current Balance */
+
+$currentBalance = $startingBalance - $totalExpense;
 /* Monthly Expense Data */
 
 $monthlyQuery = "
@@ -235,25 +285,19 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
 <div class="cards">
 
 <div class="card">
-<h4>Current Balance</h4>
-<h2>₹25,000</h2>
+    <h4>Current Balance</h4>
+    <h2>₹<?php echo number_format($currentBalance, 2); ?></h2>
 </div>
 
 <div class="card">
-<h4>Total Expense</h4>
-<h2>₹8,500</h2>
+    <h4>Total Expense</h4>
+    <h2>₹<?php echo number_format($totalExpense, 2); ?></h2>
 </div>
 
 <div class="card">
-<h4>Monthly Expense</h4>
-<h2>₹3,200</h2>
+    <h4>Monthly Expense</h4>
+    <h2>₹<?php echo number_format($monthlyExpense, 2); ?></h2>
 </div>
-
-<div class="card">
-<h4>Budget Left</h4>
-<h2>₹16,500</h2>
-</div>
-
 </div>
 
 <!-- Expense Overview -->
@@ -416,23 +460,43 @@ new Chart(pieCtx, {
             <th>Amount</th>
         </tr>
 
-        <tr>
-            <td>01 Aug</td>
-            <td>Food</td>
-            <td>₹450</td>
-        </tr>
+        <?php if(mysqli_num_rows($recentResult) > 0){ ?>
 
-        <tr>
-            <td>30 Jul</td>
-            <td>Travel</td>
-            <td>₹800</td>
-        </tr>
+            <?php while($row = mysqli_fetch_assoc($recentResult)){ ?>
 
-        <tr>
-            <td>28 Jul</td>
-            <td>Shopping</td>
-            <td>₹1200</td>
-        </tr>
+                <tr>
+
+                    <td>
+                        <?php 
+                        echo date("d M", strtotime($row['expense_date'])); 
+                        ?>
+                    </td>
+
+                    <td>
+                        <?php 
+                        echo htmlspecialchars($row['category_name']); 
+                        ?>
+                    </td>
+
+                    <td>
+                        ₹<?php echo number_format($row['amount'], 2); ?>
+                    </td>
+
+                </tr>
+
+            <?php } ?>
+
+        <?php }else{ ?>
+
+            <tr>
+
+                <td colspan="3" style="text-align:center;">
+                    No transactions found
+                </td>
+
+            </tr>
+
+        <?php } ?>
 
     </table>
 
