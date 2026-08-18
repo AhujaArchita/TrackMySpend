@@ -23,6 +23,10 @@ $userResult = mysqli_query($conn, $userQuery);
 $user = mysqli_fetch_assoc($userResult);
 
 $user_id = $user['id'];
+$search = isset($_GET['search']) ? trim($_GET['search']) : '';
+$category = isset($_GET['category']) ? trim($_GET['category']) : '';
+$date = isset($_GET['date']) ? trim($_GET['date']) : '';
+$where = " WHERE expenses.user_id='$user_id' ";
 /* Fetch Expenses */
 
 $expenseQuery = "SELECT expenses.*, categories.category_name
@@ -272,8 +276,6 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
 
 <div class="topbar">
 
-<input type="text" placeholder="Search expenses...">
-
 <div class="profile">
 
     <i class="fa fa-bell"></i>
@@ -304,31 +306,90 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
 
 <!-- Filter Section -->
 
-<div class="filter-box">
+<form method="GET" action="expenses.php">
 
-<select>
+    <input 
+        type="text"
+        name="search"
+        placeholder="Search expenses..."
+        value="<?php echo htmlspecialchars($search); ?>"
+    >
 
-<option>All Categories</option>
-<option>Food</option>
-<option>Travel</option>
-<option>Shopping</option>
-<option>Bills</option>
+    <select name="category">
 
-</select>
+        <option value="">All Categories</option>
 
-<input type="date">
+        <?php
+        $categoryQuery = "SELECT * FROM categories ORDER BY category_name ASC";
+        $categoryResult = mysqli_query($conn, $categoryQuery);
 
-<button class="search-btn">
-Search
-</button>
+        while($cat = mysqli_fetch_assoc($categoryResult)){
+        ?>
 
-</div>
+            <option 
+                value="<?php echo htmlspecialchars($cat['category_name']); ?>"
+                <?php 
+                if($category == $cat['category_name']) echo 'selected'; 
+                ?>
+            >
+                <?php echo htmlspecialchars($cat['category_name']); ?>
+            </option>
+
+        <?php } ?>
+
+    </select>
+
+    <input 
+        type="date"
+        name="date"
+        value="<?php echo htmlspecialchars($date); ?>"
+    >
+
+    <button type="submit">
+        Search
+    </button>
+
+</form>
 
 <?php
 
+/* Search Filters */
+
+$where = " WHERE expenses.user_id='$user_id' ";
+
+if($search != ''){
+
+    $search = mysqli_real_escape_string($conn, $search);
+
+    $where .= " AND (
+        expenses.title LIKE '%$search%'
+        OR categories.category_name LIKE '%$search%'
+        OR expenses.description LIKE '%$search%'
+    )";
+}
+
+if($category != ''){
+
+    $category = mysqli_real_escape_string($conn, $category);
+
+    $where .= " AND categories.category_name='$category'";
+}
+
+if($date != ''){
+
+    $date = mysqli_real_escape_string($conn, $date);
+
+    $where .= " AND expenses.expense_date='$date'";
+}
+
+
+/* Count filtered expenses */
+
 $countQuery = "SELECT COUNT(*) AS total
                FROM expenses
-               WHERE user_id='$user_id'";
+               LEFT JOIN categories
+               ON expenses.category_id = categories.category_id
+               $where";
 
 $countResult = mysqli_query($conn, $countQuery);
 
@@ -336,12 +397,17 @@ $countData = mysqli_fetch_assoc($countResult);
 
 $totalExpenses = $countData['total'];
 
+
+/* Pagination */
+
 $rowsPerPage = 8;
 
 $totalPages = ceil($totalExpenses / $rowsPerPage);
 
 if($totalPages < 1){
+
     $totalPages = 1;
+
 }
 
 ?>
@@ -407,15 +473,15 @@ if($expenseCount['total'] == 0){
 
         <?php
 
-        $expenseQuery = "SELECT expenses.*,
-                                categories.category_name
-                         FROM expenses
-                         LEFT JOIN categories
-                         ON expenses.category_id = categories.category_id
-                         WHERE expenses.user_id='$user_id'
-                         ORDER BY expenses.expense_date DESC";
+       $expenseQuery = "SELECT expenses.*,
+                        categories.category_name
+                 FROM expenses
+                 LEFT JOIN categories
+                 ON expenses.category_id = categories.category_id
+                 $where
+                 ORDER BY expenses.expense_date DESC";
 
-        $expenseResult = mysqli_query($conn, $expenseQuery);
+$expenseResult = mysqli_query($conn, $expenseQuery);
 
         $rowNumber = 0;
 
@@ -427,8 +493,7 @@ if($expenseCount['total'] == 0){
 
         ?>
 
-        <tr class="page<?php echo $pageNumber; ?>">
-
+       <tr class="page-<?php echo $pageNumber; ?>">
             <td>
                 <?php echo htmlspecialchars($expense['title']); ?>
             </td>
@@ -479,7 +544,7 @@ function showPage(page){
         row.style.display="none";
     });
 
-    document.querySelectorAll(".page"+page).forEach(row=>{
+    document.querySelectorAll(".page-"+page).forEach(row=>{
         row.style.display="";
     });
 

@@ -251,7 +251,7 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
 
 <div class="topbar">
 
-<input type="text" placeholder="Search...">
+<input type="text" id="dashboardSearch" placeholder="Search...">
 <div class="profile">
 
     <i class="fa fa-bell"></i>
@@ -452,7 +452,7 @@ new Chart(pieCtx, {
 
     <h3>Recent Transactions</h3>
 
-    <table>
+    <table id="recentTransactionsTable">
 
         <tr>
             <th>Date</th>
@@ -612,6 +612,35 @@ function confirmLogout(){
     return confirm("Are you sure you want to logout?");
 
 }
+
+</script>
+<script>
+
+document.getElementById("dashboardSearch").addEventListener("keyup", function(){
+
+    let searchValue = this.value.toLowerCase();
+
+    let table = document.getElementById("recentTransactionsTable");
+
+    let rows = table.getElementsByTagName("tr");
+
+    for(let i = 1; i < rows.length; i++){
+
+        let rowText = rows[i].textContent.toLowerCase();
+
+        if(rowText.includes(searchValue)){
+
+            rows[i].style.display = "";
+
+        }else{
+
+            rows[i].style.display = "none";
+
+        }
+
+    }
+
+});
 
 </script>
 </body>

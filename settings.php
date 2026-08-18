@@ -101,6 +101,23 @@ if(isset($_POST['saveSettings'])){
     $userQuery = "SELECT * FROM users WHERE id='$user_id'";
     $userResult = mysqli_query($conn, $userQuery);
     $user = mysqli_fetch_assoc($userResult);
+    $search = isset($_GET['search']) ? trim($_GET['search']) : '';
+    if($search != ''){
+
+    $searchSafe = mysqli_real_escape_string($conn, $search);
+
+    $userQuery = "SELECT * FROM users
+                  WHERE email='$email'
+                  AND (
+                      full_name LIKE '%$searchSafe%'
+                      OR email LIKE '%$searchSafe%'
+                      OR phone LIKE '%$searchSafe%'
+                  )";
+
+    $userResult = mysqli_query($conn, $userQuery);
+
+    $user = mysqli_fetch_assoc($userResult);
+}
 
     echo "<script>alert('Settings saved successfully.');</script>";
 
@@ -243,9 +260,7 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
 <div class="main">
 
 <div class="topbar">
-
-<input type="text" placeholder="Search Settings...">
-
+    
 <div class="profile">
 
     <i class="fa fa-bell"></i>

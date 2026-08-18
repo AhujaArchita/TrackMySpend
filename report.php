@@ -37,6 +37,7 @@ if(isset($_POST['saveExpense'])){
     $description = $_POST['description'];
 
     $user_id = $user['id'];
+    
 
 
     /* Check category already exists */
@@ -98,6 +99,7 @@ if(isset($_POST['saveExpense'])){
 /* Report Data */
 
 $user_id = $user['id'];
+$search = isset($_GET['search']) ? trim($_GET['search']) : '';
 
 /* Total Expense */
 
@@ -250,7 +252,18 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
 
 <div class="topbar">
 
-<input type="text" placeholder="Search Report...">
+<form method="GET" action="report.php" class="search-form">
+    <input 
+        type="text" 
+        name="search"
+        placeholder="Search Reports..."
+        value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>"
+    >
+
+    <button type="submit">
+        Search
+    </button>
+</form>
 
 
 <div class="profile">
@@ -336,13 +349,27 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
 
 <?php
 
-$monthlyTableQuery = "SELECT
-                      DATE_FORMAT(expense_date,'%M') AS month,
-                      SUM(amount) AS total
+$monthlyTableQuery = "SELECT 
+                      DATE_FORMAT(expenses.expense_date,'%M') AS month, 
+                      SUM(expenses.amount) AS total 
                       FROM expenses
-                      WHERE user_id='$user_id'
-                      GROUP BY YEAR(expense_date), MONTH(expense_date)
-                      ORDER BY YEAR(expense_date), MONTH(expense_date)";
+                      LEFT JOIN categories
+                      ON expenses.category_id = categories.category_id
+                      WHERE expenses.user_id='$user_id'";
+
+if($search != ''){
+
+    $search = mysqli_real_escape_string($conn, $search);
+
+    $monthlyTableQuery .= " AND (
+        expenses.title LIKE '%$search%'
+        OR categories.category_name LIKE '%$search%'
+        OR expenses.description LIKE '%$search%'
+    )";
+}
+
+$monthlyTableQuery .= " GROUP BY YEAR(expenses.expense_date), MONTH(expenses.expense_date)
+                        ORDER BY YEAR(expenses.expense_date), MONTH(expenses.expense_date)";
 
 $monthlyTableResult = mysqli_query($conn, $monthlyTableQuery);
 

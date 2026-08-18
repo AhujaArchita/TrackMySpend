@@ -109,12 +109,14 @@ background: radial-gradient(circle at top right, rgba(205,220,235,0.55), transpa
 }
 
 .topbar{
-display:flex;
-justify-content:space-between;
-align-items:center;
-margin-bottom:30px;
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    width:100%;
+    height:0;
+    padding:0;
+    margin:0;
 }
-
 .topbar input{
 width:300px;
 padding:10px;
@@ -123,9 +125,10 @@ border-radius:20px;
 }
 
 .profile{
-display:flex;
-align-items:center;
-gap:15px;
+    display:flex;
+    align-items:center;
+    gap:20px;
+    transform:translateY(24px);
 }
 
 .profile img{
@@ -275,9 +278,12 @@ grid-template-columns:1fr;
 }
 
 .main{
-padding:15px;
+margin-left: 220px;
+flex:1;
+padding:25px;
+background: radial-gradient(circle at top right, rgba(205,220,235,0.55), transparent 40%),
+        linear-gradient(135deg, #dce6f1, #e8eff7, #f5f8fc);
 }
-
 }
 
 /* ================= SETTINGS PAGE ================= */
@@ -714,4 +720,39 @@ body.dark-mode .save-expense:hover{
     background: #1e88e5;
     color: white;
     cursor: pointer;
+}
+.search-form{
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+
+.search-form input{
+    width:350px;
+    height:46px;
+    padding:0 15px;
+    border:1px solid #ccc;
+    border-radius:25px;
+    font-size:16px;
+    outline:none;
+    box-sizing:border-box;
+}
+
+.search-form input:focus{
+    border-color:#1e88e5;
+}
+
+.search-form button{
+    height:46px;
+    padding:0 22px;
+    border:none;
+    border-radius:8px;
+    background:#1e88e5;
+    color:white;
+    font-size:16px;
+    cursor:pointer;
+}
+
+.search-form button:hover{
+    background:#1976d2;
 }
