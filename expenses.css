@@ -757,3 +757,59 @@ body.dark-mode .pagination button:hover{
 .main h1{
     margin-bottom: 15px;
 }
+/* Fix Expenses Filter in Dark Mode */
+.dark-mode select,
+.dark-mode input[type="date"] {
+    background: #ffffff !important;
+    color: #555555 !important;
+    border: 1px solid #ccc !important;
+}
+
+/* Category options */
+.dark-mode select option {
+    background: #ffffff !important;
+    color: #333333 !important;
+}
+
+/* Date placeholder/text */
+.dark-mode input[type="date"] {
+    color-scheme: light !important;
+}
+
+/* Search input also */
+.dark-mode #liveSearch {
+    background: #ffffff !important;
+    color: #333333 !important;
+}
+
+.dark-mode #liveSearch::placeholder {
+    color: #888888 !important;
+}
+/* ===== Empty Expense - Dark Mode Fix ===== */
+
+.dark-mode .empty-expense {
+    background: #ffffff !important;
+    color: #333333 !important;
+}
+
+.dark-mode .empty-expense h2 {
+    color: #333333 !important;
+}
+
+.dark-mode .empty-expense p {
+    color: #666666 !important;
+}
+
+.dark-mode .empty-expense i.fa-wallet {
+    color: #278BE0 !important;
+}
+
+.dark-mode .add-first-expense {
+    background: #278BE0 !important;
+    color: #ffffff !important;
+}
+
+.dark-mode .add-first-expense i {
+    color: #ffffff !important;
+    background: transparent !important;
+}

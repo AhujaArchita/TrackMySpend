@@ -86,30 +86,6 @@ if(isset($_POST['updateExpense'])){
         }
 
     }
-    /* Delete Expense */
-
-if(isset($_POST['deleteExpense'])){
-
-    $delete_id = $_POST['delete_expense_id'];
-
-    $user_id = $user['id'];
-
-    $deleteQuery = "DELETE FROM expenses
-                    WHERE expense_id='$delete_id'
-                    AND user_id='$user_id'";
-
-    if(mysqli_query($conn, $deleteQuery)){
-
-        header("Location: expenses.php");
-        exit();
-
-    }else{
-
-        echo "Expense delete failed: " . mysqli_error($conn);
-
-    }
-
-}
 
     /* Update expense */
 
@@ -131,6 +107,28 @@ if(isset($_POST['deleteExpense'])){
     }else{
 
         echo "Expense update failed: " . mysqli_error($conn);
+
+    }
+
+}
+/* Delete Expense */
+
+if(isset($_POST['deleteExpense'])){
+
+    $delete_id = intval($_POST['delete_expense_id']);
+
+    $deleteQuery = "DELETE FROM expenses
+                    WHERE expense_id='$delete_id'
+                    AND user_id='$user_id'";
+
+    if(mysqli_query($conn, $deleteQuery)){
+
+        header("Location: expenses.php");
+        exit();
+
+    }else{
+
+        echo "Expense delete failed: " . mysqli_error($conn);
 
     }
 
@@ -230,7 +228,7 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
 
     <div>
 
-        <a href="index.html" class="logo-link">
+        <a href="index.php" class="logo-link">
         <img src="uploads\ChatGPT Image Aug 2, 2026, 08_31_48 PM.png" alt="TrackMySpend Logo">
         </a>
 
@@ -282,19 +280,19 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
 
     <div class="profile-menu">
 
-        <div class="profile-icon" onclick="toggleProfileMenu()">
+        <div class="profile-icon" onclick="window.location.href='settings.php';">
+    
+    <?php if(!empty($user['profile']) && file_exists($user['profile'])){ ?>
 
-            <?php if(!empty($user['profile']) && file_exists($user['profile'])){ ?>
+        <img src="<?php echo $user['profile']; ?>" alt="Profile">
 
-                <img src="<?php echo $user['profile']; ?>" alt="Profile">
+    <?php }else{ ?>
 
-            <?php }else{ ?>
+        <i class="fa fa-user"></i>
 
-                <i class="fa fa-user"></i>
+    <?php } ?>
 
-            <?php } ?>
-
-        </div>
+</div>
 
     </div>
 
@@ -309,13 +307,15 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
 <form method="GET" action="expenses.php">
 
     <input 
-        type="text"
-        name="search"
-        placeholder="Search expenses..."
-        value="<?php echo htmlspecialchars($search); ?>"
-    >
+    type="text"
+    name="search"
+    id="liveSearch"
+    placeholder="Search expenses..."
+    value="<?php echo htmlspecialchars($search); ?>"
+    autocomplete="off"
+>
 
-    <select name="category">
+    <select name="category" onchange="this.form.submit()">
 
         <option value="">All Categories</option>
 
@@ -340,10 +340,11 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
     </select>
 
     <input 
-        type="date"
-        name="date"
-        value="<?php echo htmlspecialchars($date); ?>"
-    >
+    type="date"
+    name="date"
+    value="<?php echo htmlspecialchars($date); ?>"
+    onchange="this.form.submit()"
+>
 
     <button type="submit">
         Search
@@ -470,68 +471,162 @@ if($expenseCount['total'] == 0){
     </thead>
 
     <tbody>
+        <script>
 
-        <?php
+const searchBox = document.getElementById("liveSearch");
 
-       $expenseQuery = "SELECT expenses.*,
+searchBox.addEventListener("input", function(){
+
+    let searchValue = this.value.toLowerCase().trim();
+
+    let rows = document.querySelectorAll("tbody tr[class^='page-']");
+
+    rows.forEach(function(row){
+
+        let title = row.cells[0].innerText.toLowerCase();
+        let category = row.cells[1].innerText.toLowerCase();
+        let amount = row.cells[2].innerText.toLowerCase();
+        let date = row.cells[3].innerText.toLowerCase();
+
+        if(
+            title.includes(searchValue) ||
+            category.includes(searchValue) ||
+            amount.includes(searchValue) ||
+            date.includes(searchValue)
+        ){
+
+            row.style.display = "";
+
+        }else{
+
+            row.style.display = "none";
+
+        }
+
+    });
+
+});
+
+</script>
+
+<?php
+
+$search = isset($_GET['search']) ? trim($_GET['search']) : '';
+$category = isset($_GET['category']) ? trim($_GET['category']) : '';
+$date = isset($_GET['date']) ? trim($_GET['date']) : '';
+
+$expenseQuery = "SELECT expenses.*,
                         categories.category_name
                  FROM expenses
                  LEFT JOIN categories
                  ON expenses.category_id = categories.category_id
-                 $where
-                 ORDER BY expenses.expense_date DESC";
+                 WHERE expenses.user_id='$user_id'";
+
+if($search != ''){
+
+    $search = mysqli_real_escape_string($conn, $search);
+
+    $expenseQuery .= " AND (
+        expenses.title LIKE '%$search%'
+        OR categories.category_name LIKE '%$search%'
+        OR expenses.description LIKE '%$search%'
+    )";
+}
+
+if($category != ''){
+
+    $category = mysqli_real_escape_string($conn, $category);
+
+    $expenseQuery .= " AND categories.category_name='$category'";
+}
+
+if($date != ''){
+
+    $date = mysqli_real_escape_string($conn, $date);
+
+    $expenseQuery .= " AND expenses.expense_date='$date'";
+}
+
+$expenseQuery .= " ORDER BY expenses.expense_date DESC";
 
 $expenseResult = mysqli_query($conn, $expenseQuery);
 
-        $rowNumber = 0;
 
-        while($expense = mysqli_fetch_assoc($expenseResult)){
+if(mysqli_num_rows($expenseResult) == 0){
 
-            $rowNumber++;
+?>
 
-            $pageNumber = ceil($rowNumber / 8);
+    <tr class="no-expense-row">
+        <td colspan="5" style="text-align:center; padding:40px;">
 
-        ?>
+            <i class="fa fa-wallet" style="font-size:30px;"></i>
 
-       <tr class="page-<?php echo $pageNumber; ?>">
-            <td>
-                <?php echo htmlspecialchars($expense['title']); ?>
-            </td>
+            <h3>No Expense Found</h3>
 
-            <td>
-                <?php echo htmlspecialchars($expense['category_name']); ?>
-            </td>
+            <p>No expense matches your search.</p>
 
-            <td>
-                ₹<?php echo htmlspecialchars($expense['amount']); ?>
-            </td>
+        </td>
+    </tr>
 
-            <td>
-                <?php
-                echo date("d-m-Y", strtotime($expense['expense_date']));
-                ?>
-            </td>
+<?php
 
-            <td>
+}else{
 
-        <button type="button"
-        class="edit"
-        onclick="editExpense(<?php echo $expense['expense_id']; ?>)">
-    <i class="fa fa-pen"></i>
-</button>
-                <button type="button"
-        class="delete"
-        onclick="deleteExpense(<?php echo $expense['expense_id']; ?>)">
-    <i class="fa fa-trash"></i>
-</button>
-            </td>
+    $rowNumber = 0;
 
-        </tr>
+    while($expense = mysqli_fetch_assoc($expenseResult)){
 
-        <?php } ?>
+        $rowNumber++;
 
-    </tbody>
+        $pageNumber = ceil($rowNumber / 8);
 
+?>
+
+    <tr class="page-<?php echo $pageNumber; ?>">
+
+        <td>
+            <?php echo htmlspecialchars($expense['title']); ?>
+        </td>
+
+        <td>
+            <?php echo htmlspecialchars($expense['category_name']); ?>
+        </td>
+
+        <td>
+            ₹<?php echo htmlspecialchars($expense['amount']); ?>
+        </td>
+
+        <td>
+            <?php echo date("d-m-Y", strtotime($expense['expense_date'])); ?>
+        </td>
+
+        <td>
+
+            <button type="button"
+                    class="edit"
+                    onclick="editExpense(<?php echo $expense['expense_id']; ?>)">
+                <i class="fa fa-pen"></i>
+            </button>
+
+            <button type="button"
+                    class="delete"
+                    onclick="deleteExpense(<?php echo $expense['expense_id']; ?>)">
+                <i class="fa fa-trash"></i>
+            </button>
+
+        </td>
+
+    </tr>
+
+<?php
+
+    }
+
+}
+
+?>
+
+</tbody>
 </table>
 <script>
 
@@ -540,10 +635,9 @@ const totalPages = <?php echo $totalPages; ?>;
 
 function showPage(page){
 
-    document.querySelectorAll("tbody tr").forEach(row=>{
-        row.style.display="none";
+    document.querySelectorAll("tbody tr[class^='page-']").forEach(row=>{
+    row.style.display="none";
     });
-
     document.querySelectorAll(".page-"+page).forEach(row=>{
         row.style.display="";
     });

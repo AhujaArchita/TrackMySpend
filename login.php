@@ -105,14 +105,6 @@ onclick="showPassword()">
 
 <div class="options">
 
-<label>
-
-<input type="checkbox">
-
-Remember Me
-
-</label>
-
 <a href="forgot-password.php">Forgot Password?</a>
 
 </div>

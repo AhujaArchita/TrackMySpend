@@ -208,7 +208,7 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
 
 <div>
 
-<a href="index.html" class="logo-link">
+<a href="index.php" class="logo-link">
 <img src="uploads\ChatGPT Image Aug 2, 2026, 08_31_48 PM.png" alt="TrackMySpend Logo">
 </a>
 
@@ -272,19 +272,19 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
 
     <div class="profile-menu">
 
-        <div class="profile-icon" onclick="toggleProfileMenu()">
+        <div class="profile-icon" onclick="window.location.href='settings.php';">
+    
+    <?php if(!empty($user['profile']) && file_exists($user['profile'])){ ?>
 
-            <?php if(!empty($user['profile']) && file_exists($user['profile'])){ ?>
+        <img src="<?php echo $user['profile']; ?>" alt="Profile">
 
-                <img src="<?php echo $user['profile']; ?>" alt="Profile">
+    <?php }else{ ?>
 
-            <?php }else{ ?>
+        <i class="fa fa-user"></i>
 
-                <i class="fa fa-user"></i>
+    <?php } ?>
 
-            <?php } ?>
-
-        </div>
+</div>
 
     </div>
 
