@@ -813,3 +813,9 @@ body.dark-mode .pagination button:hover{
     color: #ffffff !important;
     background: transparent !important;
 }
+/* Add Expense Plus Icon */
+.add-first-expense i {
+    color: #278BE0 !important;
+    background: #ffffff !important;
+    border-radius: 50%;
+}
