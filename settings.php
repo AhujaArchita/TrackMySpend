@@ -314,7 +314,7 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
         <a href="index.php" class="logo-link">
 
             <img
-                src="uploads/ChatGPT Image Aug 2, 2026, 08_31_48 PM.png"
+                src="uploads\logo.png"
                 alt="TrackMySpend Logo"
             >
 
